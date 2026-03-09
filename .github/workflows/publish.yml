@@ -1,0 +1,121 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Regenerate themes from latest upstream release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run generate:themes -- --ref latest-release
+
+      - name: Bump version when generated themes changed
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- themes; then
+            echo "themes_changed=false" >> "$GITHUB_OUTPUT"
+            echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PREV_VERSION="$(node -p "require('./package.json').version")"
+          npm version patch --no-git-tag-version >/dev/null
+          NEXT_VERSION="$(node -p "require('./package.json').version")"
+
+          echo "themes_changed=true" >> "$GITHUB_OUTPUT"
+          echo "previous_version=${PREV_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "version=${NEXT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Bumped extension version ${PREV_VERSION} -> ${NEXT_VERSION} because generated themes changed."
+
+      - name: Validate theme bundle
+        run: npm run check:themes
+
+      - name: Commit generated theme updates
+        if: steps.bump.outputs.themes_changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add themes package.json
+          git commit -m "chore: sync Kaolin themes and bump version to ${{ steps.bump.outputs.version }} [skip ci]"
+          git push
+
+      - name: Decide publish
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "reason=manual-dispatch" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "${{ steps.bump.outputs.themes_changed }}" == "true" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "reason=themes-changed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CURRENT="$(node -p "require('./package.json').version")"
+          BEFORE="${{ github.event.before }}"
+          if [[ -z "$BEFORE" || "$BEFORE" == "0000000000000000000000000000000000000000" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "reason=initial-push" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PREV="$(git show "$BEFORE:package.json" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const j=JSON.parse(d);process.stdout.write(j.version||'');});")"
+
+          if [[ "$CURRENT" != "$PREV" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "reason=package-version-changed" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "reason=no-version-or-theme-change" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to VS Code Marketplace
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [[ -z "${VSCE_PAT}" ]]; then
+            echo "VSCE_PAT secret is not configured."
+            exit 1
+          fi
+
+          npx @vscode/vsce publish --pat "$VSCE_PAT"
+
+      - name: Skip publish
+        if: steps.gate.outputs.publish != 'true'
+        run: echo "Skipping publish (${{ steps.gate.outputs.reason }})."

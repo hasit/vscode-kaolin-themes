@@ -9,13 +9,22 @@ Kaolin themes for VS Code, source-generated from
 npm run generate:themes
 ```
 
-Use a custom upstream ref:
+By default, generation tracks the latest upstream release tag from
+`ogdenwebb/emacs-kaolin-themes`.
+
+Use a custom upstream ref (commit, branch, or tag):
 
 ```bash
 npm run generate:themes -- --ref <git-ref>
 ```
 
-Default pinned ref used by the generator:
+Explicitly force latest-release resolution:
+
+```bash
+npm run generate:themes -- --latest-release
+```
+
+Fallback pinned ref used when latest-release lookup is unavailable:
 
 - `fc0337582f36167b74cbdc86a48471092c8f3262`
 
@@ -34,6 +43,25 @@ Validation checks:
 - each contributed theme file exists and parses
 - required keys (`name`, `type`, `colors`, `tokenColors`)
 - hex color validity in theme/token/semantic color sections
+
+## GitHub Actions Publish Automation
+
+Publishing is automated on push to `main` via:
+
+- [publish.yml](/Users/hasit/github/vscode-kaolin-themes/.github/workflows/publish.yml)
+
+Behavior:
+
+- regenerates themes from latest upstream release before validation/publish
+- bumps `package.json` patch version when regenerated `themes/` files changed
+- commits regenerated theme files + bumped version back to `main` using GitHub Actions bot
+- runs `npm run check:themes`
+- publishes on manual dispatch, version-change commits, or auto-detected theme changes
+- supports manual run with `workflow_dispatch` (always publishes)
+
+Required repository secret:
+
+- `VSCE_PAT`: Azure DevOps PAT with `Marketplace > Manage` scope
 
 ## Canonical Theme Set
 

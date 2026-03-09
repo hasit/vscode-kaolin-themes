@@ -8,9 +8,12 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, "..");
 const THEMES_DIR = path.join(ROOT_DIR, "themes");
 
-const DEFAULT_REF = "fc0337582f36167b74cbdc86a48471092c8f3262";
+const FALLBACK_REF = "fc0337582f36167b74cbdc86a48471092c8f3262";
+const DEFAULT_REF = "latest-release";
 const UPSTREAM_BASE =
 	"https://raw.githubusercontent.com/ogdenwebb/emacs-kaolin-themes";
+const UPSTREAM_REPO_API =
+	"https://api.github.com/repos/ogdenwebb/emacs-kaolin-themes";
 
 const THEME_DEFS = [
 	{
@@ -106,7 +109,8 @@ const THEME_DEFS = [
 ];
 
 async function main() {
-	const ref = getArgValue("--ref") ?? DEFAULT_REF;
+	const inputRef = getArgValue("--ref") ?? DEFAULT_REF;
+	const ref = await resolveInputRef(inputRef);
 
 	const [kaolinThemesText, kaolinLibText] = await Promise.all([
 		fetchText(ref, "kaolin-themes.el"),
@@ -140,12 +144,60 @@ async function main() {
 	process.stdout.write(`Generated ${THEME_DEFS.length} themes from ${ref}.\n`);
 }
 
+async function resolveInputRef(inputRef) {
+	const wantsLatestRelease =
+		inputRef === "latest-release" || process.argv.includes("--latest-release");
+
+	if (!wantsLatestRelease) {
+		return inputRef;
+	}
+
+	const releaseTag = await fetchLatestReleaseTag();
+	if (releaseTag) {
+		process.stdout.write(`Resolved latest upstream release tag: ${releaseTag}\n`);
+		return releaseTag;
+	}
+
+	process.stdout.write(
+		`Could not resolve latest upstream release; falling back to pinned ref ${FALLBACK_REF}\n`,
+	);
+	return FALLBACK_REF;
+}
+
 function getArgValue(flag) {
 	const idx = process.argv.indexOf(flag);
 	if (idx === -1) {
 		return null;
 	}
 	return process.argv[idx + 1] ?? null;
+}
+
+async function fetchLatestReleaseTag() {
+	const headers = {
+		Accept: "application/vnd.github+json",
+		"User-Agent": "vscode-kaolin-themes-generator",
+	};
+
+	if (process.env.GITHUB_TOKEN) {
+		headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+	}
+
+	try {
+		const response = await fetch(`${UPSTREAM_REPO_API}/releases/latest`, {
+			headers,
+		});
+		if (!response.ok) {
+			return null;
+		}
+
+		const data = await response.json();
+		if (typeof data.tag_name === "string" && data.tag_name.length > 0) {
+			return data.tag_name;
+		}
+		return null;
+	} catch {
+		return null;
+	}
 }
 
 async function fetchText(ref, relPath) {

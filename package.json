@@ -1,6 +1,6 @@
 {
 	"name": "vscode-kaolin-themes",
-	"displayName": "Kaolin Themes",
+	"displayName": "Kaolin Themes (Emacs Port)",
 	"description": "Kaolin themes for VS Code generated from emacs-kaolin-themes",
 	"version": "0.1.0",
 	"publisher": "hasit",

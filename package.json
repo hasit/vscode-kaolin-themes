@@ -1,0 +1,110 @@
+{
+	"name": "vscode-kaolin-themes",
+	"displayName": "Kaolin Themes",
+	"description": "Kaolin themes for VS Code generated from emacs-kaolin-themes",
+	"version": "0.1.0",
+	"publisher": "hasit",
+	"license": "GPL-3.0-or-later",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/hasit/vscode-kaolin-themes.git"
+	},
+	"homepage": "https://github.com/hasit/vscode-kaolin-themes#readme",
+	"bugs": {
+		"url": "https://github.com/hasit/vscode-kaolin-themes/issues"
+	},
+	"engines": {
+		"vscode": "^1.85.0"
+	},
+	"categories": [
+		"Themes"
+	],
+	"keywords": [
+		"kaolin",
+		"themes",
+		"color-theme"
+	],
+	"scripts": {
+		"generate:themes": "node ./scripts/generate-themes.mjs",
+		"check:themes": "node ./scripts/check-themes.mjs"
+	},
+	"contributes": {
+		"themes": [
+			{
+				"label": "Kaolin Dark",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-dark-color-theme.json"
+			},
+			{
+				"label": "Kaolin Light",
+				"uiTheme": "vs",
+				"path": "./themes/kaolin-light-color-theme.json"
+			},
+			{
+				"label": "Kaolin Aurora",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-aurora-color-theme.json"
+			},
+			{
+				"label": "Kaolin Bubblegum",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-bubblegum-color-theme.json"
+			},
+			{
+				"label": "Kaolin Eclipse",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-eclipse-color-theme.json"
+			},
+			{
+				"label": "Kaolin Galaxy",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-galaxy-color-theme.json"
+			},
+			{
+				"label": "Kaolin Ocean",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-ocean-color-theme.json"
+			},
+			{
+				"label": "Kaolin Temple",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-temple-color-theme.json"
+			},
+			{
+				"label": "Kaolin Valley Dark",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-valley-dark-color-theme.json"
+			},
+			{
+				"label": "Kaolin Valley Light",
+				"uiTheme": "vs",
+				"path": "./themes/kaolin-valley-light-color-theme.json"
+			},
+			{
+				"label": "Kaolin Blossom",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-blossom-color-theme.json"
+			},
+			{
+				"label": "Kaolin Breeze",
+				"uiTheme": "vs",
+				"path": "./themes/kaolin-breeze-color-theme.json"
+			},
+			{
+				"label": "Kaolin Mono Dark",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-mono-dark-color-theme.json"
+			},
+			{
+				"label": "Kaolin Mono Light",
+				"uiTheme": "vs",
+				"path": "./themes/kaolin-mono-light-color-theme.json"
+			},
+			{
+				"label": "Kaolin Shiva",
+				"uiTheme": "vs-dark",
+				"path": "./themes/kaolin-shiva-color-theme.json"
+			}
+		]
+	}
+}

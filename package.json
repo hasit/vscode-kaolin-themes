@@ -2,7 +2,8 @@
 	"name": "vscode-kaolin-themes",
 	"displayName": "Kaolin Themes (Emacs Port)",
 	"description": "Kaolin themes for VS Code generated from emacs-kaolin-themes",
-	"version": "0.2.0",
+	"icon": "images/icon.png",
+	"version": "0.3.0",
 	"publisher": "hasit",
 	"license": "GPL-3.0-or-later",
 	"repository": {

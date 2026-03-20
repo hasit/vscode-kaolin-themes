@@ -154,7 +154,9 @@ async function resolveInputRef(inputRef) {
 
 	const releaseTag = await fetchLatestReleaseTag();
 	if (releaseTag) {
-		process.stdout.write(`Resolved latest upstream release tag: ${releaseTag}\n`);
+		process.stdout.write(
+			`Resolved latest upstream release tag: ${releaseTag}\n`,
+		);
 		return releaseTag;
 	}
 
